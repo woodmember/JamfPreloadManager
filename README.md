@@ -10,13 +10,12 @@ lock that configuration fleet-wide with a configuration profile.
 
 > Community project. Not affiliated with or endorsed by Jamf.
 
-> **⚠️ Beta software.** This is a **beta** release (v0.7p) — expect rough edges and please
+> **⚠️ Beta software.** This is a **beta** release (v0.8p) — expect rough edges and please
 > report issues.
 
-> **Device types:** Records can be created for **Computer** or **Mobile Device** (choose per
-> record, per bulk run, or per CSV row). Mac (Computer) is well exercised; **Mobile Device
-> support is new and only lightly tested** — verify against your tenant before relying on it.
-> iPhone, iPad, Apple TV, Apple Watch, and Apple Vision Pro all use the `Mobile Device` type.
+> **Device types:** Manages both **Computer** and **Mobile Device** inventory preload records —
+> choose the device type per record, per bulk run, or per CSV row. iPhone, iPad, Apple TV, Apple
+> Watch, and Apple Vision Pro all use the `Mobile Device` type.
 
 ---
 
@@ -32,14 +31,15 @@ lock that configuration fleet-wide with a configuration profile.
 - [Activity log](#activity-log)
 - [Security](#security)
 - [Build from source](#build-from-source)
+- [Changelog](#changelog)
 - [License](#license)
 
 ---
 
 ## Features
 
-- **Computer or Mobile Device** – choose the device type per record, per bulk run, and per CSV
-  row. Templates can be generated for either, with the device type pre-filled.
+- **Computer & Mobile Device** – manage both device types; choose per record, per bulk run, and
+  per CSV row. Templates can be generated for either, with the device type pre-filled.
 - **Find** – look up a serial number and see its current preload values.
 - **Add** – create a single preload record from a guided form with required-field validation.
 - **Modify** – load an existing record, edit it, and save changes back to Jamf.
@@ -64,8 +64,7 @@ lock that configuration fleet-wide with a configuration profile.
 
 ## Requirements
 
-- **Beta software** — Mac (Computer) is well tested; **Mobile Device support is new and only
-  lightly tested**, so verify against your tenant before relying on it.
+- **Beta software.** Manages both Computer and Mobile Device inventory preload records.
 - macOS 14 (Sonoma) or later.
 - A Jamf Pro **API client** (client ID + secret) created under *Settings → API roles and
   clients* with privileges for Inventory Preload records:
@@ -122,6 +121,23 @@ and bulk screens (defaults to Computer).
 
 CSV templates always match your configured fields, so a template you download is exactly what
 the app expects back on import.
+
+### Computer vs Mobile Device workflow
+
+Device Type is a first-class **Computer / Mobile Device** choice everywhere. iPhone, iPad, Apple
+TV, Apple Watch, and Apple Vision Pro are all created as `Mobile Device`.
+
+- **Single record (Add / Modify):** set the Device Type toggle at the top of the form before
+  saving. Loading an existing record shows its current type.
+- **Bulk → Serials-only CSV:** pick the Device Type once; it is applied to every serial in the
+  run.
+- **Bulk → Completed CSV:** choose **Computer** or **Mobile Device**, then download the template.
+  The template includes a **Device Type** column, and its example first row is pre-filled with
+  the type you chose so you know what to enter for the remaining rows. On import, each row's
+  `Device Type` column is honored (a blank cell defaults to `Computer`).
+
+To manage a mix of Macs and mobile devices in one bulk run, use the **Completed CSV** workflow
+and set the `Device Type` column per row.
 
 ---
 
@@ -350,6 +366,12 @@ notary profile; see [`docs/Notarization-HowTo.md`](docs/Notarization-HowTo.md).
 > **Note on the committed installer:** the bundled `.pkg` is Developer ID **signed**. If it is
 > not **notarized**, Gatekeeper may warn on first open for users who download it from the web.
 > For the smoothest experience, build with `--notarize`.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes. Current release: **0.8p**.
 
 ---
 
