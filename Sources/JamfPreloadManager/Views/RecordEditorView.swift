@@ -252,16 +252,19 @@ struct EntryDetailsSection: View {
                     }
                 }
 
-                if configuration.fields.isEmpty {
-                    GridRow {
-                        Text("No additional fields are configured. Add fields in Settings → Fields.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                            .gridCellColumns(2)
+                GridRow {
+                    fieldLabel("Device Type", required: true)
+                    Picker("", selection: $draft.deviceType) {
+                        ForEach(PreloadDeviceType.allCases) { type in
+                            Label(type.title, systemImage: type.systemImage).tag(type)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 320, alignment: .leading)
                 }
 
-                ForEach(configuration.fields) { field in
+                ForEach(configuration.editableFields) { field in
                     GridRow {
                         fieldLabel(field.displayName, required: field.isRequired)
                         FieldEditorRow(field: field, value: binding(for: field))

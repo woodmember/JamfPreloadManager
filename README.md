@@ -13,10 +13,10 @@ lock that configuration fleet-wide with a configuration profile.
 > **⚠️ Beta software.** This is a **beta** release (v0.7p) — expect rough edges and please
 > report issues.
 
-> **Tested on Mac only (for now):** So far this has only been **tested with Mac (Computer)**
-> inventory preload records. Mobile devices — **iPhone, iPad, Apple TV, Apple Watch, and Apple
-> Vision Pro** — are untested and not currently supported. Records are created with a
-> `Computer` device type.
+> **Device types:** Records can be created for **Computer** or **Mobile Device** (choose per
+> record, per bulk run, or per CSV row). Mac (Computer) is well exercised; **Mobile Device
+> support is new and only lightly tested** — verify against your tenant before relying on it.
+> iPhone, iPad, Apple TV, Apple Watch, and Apple Vision Pro all use the `Mobile Device` type.
 
 ---
 
@@ -38,6 +38,8 @@ lock that configuration fleet-wide with a configuration profile.
 
 ## Features
 
+- **Computer or Mobile Device** – choose the device type per record, per bulk run, and per CSV
+  row. Templates can be generated for either, with the device type pre-filled.
 - **Find** – look up a serial number and see its current preload values.
 - **Add** – create a single preload record from a guided form with required-field validation.
 - **Modify** – load an existing record, edit it, and save changes back to Jamf.
@@ -62,8 +64,8 @@ lock that configuration fleet-wide with a configuration profile.
 
 ## Requirements
 
-- **Beta software** — currently only **tested with Mac (Computer)** inventory preload. Mobile
-  devices (iPhone, iPad, Apple TV, Apple Watch, Apple Vision Pro) are untested/unsupported.
+- **Beta software** — Mac (Computer) is well tested; **Mobile Device support is new and only
+  lightly tested**, so verify against your tenant before relying on it.
 - macOS 14 (Sonoma) or later.
 - A Jamf Pro **API client** (client ID + secret) created under *Settings → API roles and
   clients* with privileges for Inventory Preload records:
@@ -103,14 +105,17 @@ reloads that host's saved credentials.
 
 ### 2. Choose your fields (Settings → Fields)
 
-See [Configurable fields](#configurable-fields). Out of the box the app collects only Serial
-Number (always required) and Device Type.
+See [Configurable fields](#configurable-fields). Serial Number and Device Type are always
+collected; out of the box no other fields are enabled.
 
 ### 3. Work with records
 
+Every record has a **Device Type** — a **Computer / Mobile Device** toggle on the Add, Modify,
+and bulk screens (defaults to Computer).
+
 - **Find Entry** – enter a serial, view the current preload record.
-- **Add Entry** – fill the serial + your configured fields, **Create Entry**.
-- **Modify Entry** – **Load Record** by serial, edit, **Save Changes**.
+- **Add Entry** – set the device type, fill the serial + your configured fields, **Create Entry**.
+- **Modify Entry** – **Load Record** by serial, edit (including device type), **Save Changes**.
 - **Delete Entry** – load a record, confirm, delete.
 - **Bulk Update** – pick a workflow, download a template if needed, import your CSV, run it.
   Results are reported per row so you can fix and re-run safely.
@@ -122,12 +127,12 @@ the app expects back on import.
 
 ## Configurable fields
 
-Open **Settings → Fields**. Serial Number is always included and required; everything else is
-up to you.
+Open **Settings → Fields**. Serial Number (required) and Device Type (Computer / Mobile Device)
+are always collected; everything else is up to you.
 
-- **Standard Jamf fields** – toggle any inventory-preload field on/off (Device Type, Username,
-  Full Name, Email Address, Department, Building, Room, Asset Tag, PO Number, Warranty
-  Expiration, and the rest of Jamf's template columns).
+- **Standard Jamf fields** – toggle any inventory-preload field on/off (Username, Full Name,
+  Email Address, Department, Building, Room, Asset Tag, PO Number, Warranty Expiration, and the
+  rest of Jamf's template columns).
 - **Extension attributes** – add your own by name (use the exact attribute name from Jamf Pro).
 - **Per-field input type**:
   - **Free text** – a plain text box.
@@ -181,10 +186,11 @@ Each entry in the `fields` array is a dictionary:
 | `isRequired`        | Boolean | Whether the field must be filled                                    |
 | `defaultValue`      | String  | Pre-filled value for new records                                    |
 
-Serial Number is implicit and always required, so it is **not** listed in `fields`. If no
-`Device Type` field is configured, records are created as `Computer`.
+Serial Number and Device Type are always-collected first-class controls, so they are **not**
+listed in `fields`. Device Type is chosen in-app (Computer / Mobile Device) or supplied via the
+CSV `Device Type` column; it defaults to `Computer`.
 
-Standard `key` values are Jamf's camelCase API keys, e.g. `deviceType`, `username`, `fullName`,
+Standard `key` values are Jamf's camelCase API keys, e.g. `username`, `fullName`,
 `emailAddress`, `phoneNumber`, `position`, `department`, `building`, `room`, `poNumber`,
 `poDate`, `warrantyExpiration`, `appleCareId`, `purchasePrice`, `lifeExpectancy`,
 `purchasingAccount`, `purchasingContact`, `leaseExpiration`, `barCode1`, `barCode2`,
@@ -229,23 +235,13 @@ attributes, seeds the server URL, and (commented) shows where a client ID would 
                 <key>DefaultServerURL</key><string>https://yourorg.jamfcloud.com</string>
                 <!-- <key>DefaultClientID</key><string>your-api-client-id</string> -->
 
-                <!-- The field configuration (locks the Fields settings). -->
+                <!-- The field configuration (locks the Fields settings).
+                     Serial Number and Device Type are always collected and are NOT
+                     listed here. -->
                 <key>FieldConfiguration</key>
                 <dict>
                   <key>fields</key>
                   <array>
-                    <dict>
-                      <key>id</key><string>std:deviceType</string>
-                      <key>kind</key><string>standard</string>
-                      <key>key</key><string>deviceType</string>
-                      <key>displayName</key><string>Device Type</string>
-                      <key>inputType</key><string>list</string>
-                      <key>listOptions</key>
-                      <array><string>Computer</string><string>Mobile Device</string></array>
-                      <key>allowsCustomEntry</key><false/>
-                      <key>isRequired</key><false/>
-                      <key>defaultValue</key><string>Computer</string>
-                    </dict>
                     <dict>
                       <key>id</key><string>std:assetTag</string>
                       <key>kind</key><string>standard</string>

@@ -6,6 +6,7 @@ import Foundation
 /// attributes alike), using each field's display name as the header.
 enum InventoryPreloadCSV {
     static let serialHeader = StandardPreloadField.serialNumber.csvHeader
+    static let deviceTypeHeader = StandardPreloadField.deviceType.csvHeader
 
     private static var serialAliases: Set<String> {
         var aliases = StandardPreloadField.serialNumber.aliases
@@ -14,11 +15,18 @@ enum InventoryPreloadCSV {
     }
 
     static func columnHeaders(for configuration: FieldConfiguration) -> [String] {
-        [serialHeader] + configuration.fields.map(\.displayName)
+        [serialHeader, deviceTypeHeader] + configuration.editableFields.map(\.displayName)
     }
 
-    static func templateText(configuration: FieldConfiguration) -> String {
-        CSVSupport.csvLine(columnHeaders(for: configuration)) + "\n"
+    /// A template containing the header row plus one example data row whose Device
+    /// Type is pre-filled with `deviceType`, so the user can see what to enter for
+    /// the remaining rows. The example row's serial is blank, so it is ignored on
+    /// import.
+    static func templateText(configuration: FieldConfiguration, deviceType: PreloadDeviceType) -> String {
+        let headers = columnHeaders(for: configuration)
+        var exampleRow = ["", deviceType.rawValue]
+        exampleRow.append(contentsOf: configuration.editableFields.map { _ in "" })
+        return CSVSupport.csvLine(headers) + "\n" + CSVSupport.csvLine(exampleRow) + "\n"
     }
 
     static func serialsOnlyTemplateText() -> String {
@@ -49,7 +57,7 @@ enum InventoryPreloadCSV {
 
         // Resolve which column feeds each configured field.
         var fieldColumnIndex: [String: Int] = [:]
-        for field in configuration.fields {
+        for field in configuration.editableFields {
             if let columnIndex = index(matching: field.csvHeaderAliases, in: headerMap) {
                 fieldColumnIndex[field.id] = columnIndex
             }
@@ -64,7 +72,7 @@ enum InventoryPreloadCSV {
             }
 
             var values: [String: String] = [:]
-            for field in configuration.fields {
+            for field in configuration.editableFields {
                 guard let columnIndex = fieldColumnIndex[field.id],
                       let value = rawValue(at: columnIndex, in: row) else {
                     continue
@@ -86,9 +94,13 @@ enum InventoryPreloadCSV {
             throw JamfAppError.validation("The selected CSV did not contain any serial numbers.")
         }
 
-        let matchedHeaders = [serialHeader] + configuration.fields
+        var matchedHeaders = [serialHeader]
+        if deviceTypeIndex != nil {
+            matchedHeaders.append(deviceTypeHeader)
+        }
+        matchedHeaders.append(contentsOf: configuration.editableFields
             .filter { fieldColumnIndex[$0.id] != nil }
-            .map(\.displayName)
+            .map(\.displayName))
 
         return ImportedBulkCSVFile(
             sourceName: url.lastPathComponent,
@@ -103,8 +115,8 @@ enum InventoryPreloadCSV {
     private static func makePreviewCSV(rows: [ImportedBulkCSVRow], configuration: FieldConfiguration) -> String {
         let headers = columnHeaders(for: configuration)
         let lines = [CSVSupport.csvLine(headers)] + rows.map { row in
-            var line = [row.serialNumber]
-            line.append(contentsOf: configuration.fields.map { row.values[$0.id] ?? "" })
+            var line = [row.serialNumber, row.deviceType ?? PreloadDeviceType.computer.rawValue]
+            line.append(contentsOf: configuration.editableFields.map { row.values[$0.id] ?? "" })
             return CSVSupport.csvLine(line)
         }
 

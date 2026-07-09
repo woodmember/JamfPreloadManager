@@ -276,8 +276,8 @@ final class AppModel {
         return report
     }
 
-    func exportUsedFieldsCSVTemplate() async throws -> URL? {
-        let data = Data(InventoryPreloadCSV.templateText(configuration: fieldConfiguration).utf8)
+    func exportUsedFieldsCSVTemplate(deviceType: PreloadDeviceType) async throws -> URL? {
+        let data = Data(InventoryPreloadCSV.templateText(configuration: fieldConfiguration, deviceType: deviceType).utf8)
         let url = try CSVExporter.saveCSV(
             data: data,
             suggestedFilename: AppConstants.suggestedCSVTemplateFilename()
@@ -343,7 +343,11 @@ final class AppModel {
     private func apply(row: ImportedBulkCSVRow, to draft: inout PreloadDraft) {
         draft.serialNumber = row.serialNumber
 
-        for field in fieldConfiguration.fields {
+        if let deviceType = row.deviceType {
+            draft.deviceType = PreloadDeviceType(jamfValue: deviceType)
+        }
+
+        for field in fieldConfiguration.editableFields {
             if let value = row.values[field.id] {
                 draft.values[field.id] = value
             }

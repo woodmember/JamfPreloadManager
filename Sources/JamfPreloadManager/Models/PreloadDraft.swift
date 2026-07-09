@@ -1,17 +1,18 @@
 import Foundation
 
 /// Editable, in-progress values for a single preload record. Values are keyed by
-/// `PreloadField.id`; the serial number is tracked separately because it is always
-/// present and required regardless of the configuration.
+/// `PreloadField.id`; the serial number and device type are tracked separately
+/// because they are always present regardless of the configuration.
 struct PreloadDraft: Sendable, Equatable {
     var serialNumber = ""
+    var deviceType: PreloadDeviceType = .computer
     var values: [String: String] = [:]
 
     init() {}
 
     /// Creates a draft pre-populated with each configured field's default value.
     init(configuration: FieldConfiguration) {
-        for field in configuration.fields {
+        for field in configuration.editableFields {
             values[field.id] = field.defaultValue
         }
     }
@@ -19,7 +20,8 @@ struct PreloadDraft: Sendable, Equatable {
     /// Creates a draft populated from an existing record for the given configuration.
     init(record: PreloadRecord, configuration: FieldConfiguration) {
         serialNumber = record.serialNumber
-        for field in configuration.fields {
+        deviceType = PreloadDeviceType(jamfValue: record.deviceType)
+        for field in configuration.editableFields {
             values[field.id] = record.value(for: field) ?? field.defaultValue
         }
     }
@@ -35,7 +37,7 @@ struct PreloadDraft: Sendable, Equatable {
     /// Whether every required configured field currently has a value. Does not
     /// consider the serial number (bulk-from-serials supplies it per row).
     func hasValidRequiredFieldValues(configuration: FieldConfiguration) -> Bool {
-        configuration.fields.allSatisfy { field in
+        configuration.editableFields.allSatisfy { field in
             field.isRequired == false || value(for: field).isEmpty == false
         }
     }
@@ -51,11 +53,10 @@ struct PreloadDraft: Sendable, Equatable {
             throw JamfAppError.validation("Serial number is required.")
         }
 
-        var deviceType = AppConstants.deviceType
         var standardValues: [String: String] = [:]
         var extensionAttributes: [(name: String, value: String)] = []
 
-        for field in configuration.fields {
+        for field in configuration.editableFields {
             let value = value(for: field)
 
             if field.isRequired, value.isEmpty {
@@ -68,11 +69,7 @@ struct PreloadDraft: Sendable, Equatable {
 
             switch field.kind {
             case .standard:
-                if field.isDeviceType {
-                    deviceType = value
-                } else {
-                    standardValues[field.key] = value
-                }
+                standardValues[field.key] = value
             case .extensionAttribute:
                 extensionAttributes.append((name: field.key, value: value))
             }
@@ -80,7 +77,7 @@ struct PreloadDraft: Sendable, Equatable {
 
         return PreloadSubmission(
             serialNumber: serialNumber,
-            deviceType: deviceType,
+            deviceType: deviceType.rawValue,
             standardValues: standardValues,
             extensionAttributes: extensionAttributes
         )

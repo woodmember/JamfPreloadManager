@@ -57,6 +57,7 @@ struct BulkUpdateView: View {
 
     @State private var workflow: Workflow = .templateFromSerials
     @State private var draft = PreloadDraft()
+    @State private var templateDeviceType: PreloadDeviceType = .computer
     @State private var editorGeneration = 0
     @State private var didInitialize = false
     @State private var importedSerials: ImportedSerialList?
@@ -181,7 +182,7 @@ struct BulkUpdateView: View {
                 importedSerials: importedSerials,
                 isBusy: isWorking || isExportingTemplate,
                 buttonTitle: "Import Serial CSV",
-                instructions: "Import a CSV of serial numbers. The values you set below are applied to every serial before each record is created or updated.",
+                instructions: "Import a CSV of serial numbers. The device type and values you set below are applied to every serial before each record is created or updated.",
                 importAction: importSerialCSV,
                 clearAction: clearImportedSerials
             )
@@ -208,10 +209,28 @@ struct BulkUpdateView: View {
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
 
+                    Text("Generate the template for:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Picker("Template device type", selection: $templateDeviceType) {
+                        ForEach(PreloadDeviceType.allCases) { type in
+                            Text(type.title).tag(type)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 320, alignment: .leading)
+
+                    Text("The template includes a Device Type column, and its example first row is pre-filled with \"\(templateDeviceType.title)\" so you know what to enter for every row.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     Button {
                         exportCompletedTemplate()
                     } label: {
-                        Label(isExportingTemplate ? "Saving Template..." : "Download Completed CSV Template", systemImage: "square.and.arrow.down")
+                        Label(isExportingTemplate ? "Saving Template..." : "Download \(templateDeviceType.title) CSV Template", systemImage: "square.and.arrow.down")
                     }
                     .disabled(isWorking || isExportingTemplate)
                 }
@@ -362,8 +381,8 @@ struct BulkUpdateView: View {
             isExportingTemplate = true
 
             do {
-                _ = try await model.exportUsedFieldsCSVTemplate()
-                feedback = "Saved the completed CSV template."
+                _ = try await model.exportUsedFieldsCSVTemplate(deviceType: templateDeviceType)
+                feedback = "Saved the \(templateDeviceType.title) CSV template."
             } catch {
                 alertMessage = error.localizedDescription
             }

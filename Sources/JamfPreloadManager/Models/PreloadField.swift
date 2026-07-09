@@ -101,10 +101,11 @@ enum StandardPreloadField: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Standard fields a user can enable/disable in Settings. Serial Number is
-    /// always implicitly present and required, so it is excluded here.
+    /// Standard fields a user can enable/disable in Settings. Serial Number and
+    /// Device Type are always present (Serial is required; Device Type is a
+    /// first-class Computer/Mobile Device choice), so both are excluded here.
     static var configurable: [StandardPreloadField] {
-        allCases.filter { $0 != .serialNumber }
+        allCases.filter { $0 != .serialNumber && $0 != .deviceType }
     }
 }
 
@@ -234,23 +235,17 @@ struct FieldConfiguration: Codable, Equatable, Sendable {
         self.fields = fields
     }
 
-    /// Out-of-the-box configuration for a fresh install: just Serial Number
-    /// (implicit) plus a Device Type picker defaulting to Computer.
+    /// Out-of-the-box configuration for a fresh install. Serial Number and Device
+    /// Type are always collected as first-class controls, so the configurable field
+    /// list starts empty.
     static var neutralDefault: FieldConfiguration {
-        FieldConfiguration(fields: [
-            .standard(
-                .deviceType,
-                inputType: .list,
-                listOptions: ["Computer", "Mobile Device", "Unknown"],
-                allowsCustomEntry: false,
-                isRequired: false,
-                defaultValue: AppConstants.deviceType
-            )
-        ])
+        FieldConfiguration(fields: [])
     }
 
-    var deviceTypeField: PreloadField? {
-        fields.first { $0.isDeviceType }
+    /// Configurable fields to render, excluding any legacy Device Type field (Device
+    /// Type is handled as a first-class Computer/Mobile Device control).
+    var editableFields: [PreloadField] {
+        fields.filter { $0.isDeviceType == false }
     }
 
     func field(withID id: String) -> PreloadField? {

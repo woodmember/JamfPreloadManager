@@ -16,12 +16,9 @@ struct RecordSummaryView: View {
             VStack(alignment: .leading, spacing: 12) {
                 summaryRow("Record ID", "\(record.id)")
                 summaryRow("Serial Number", record.serialNumber)
+                summaryRow("Device Type", record.deviceType)
 
-                if configuration.deviceTypeField == nil {
-                    summaryRow("Device Type", record.deviceType)
-                }
-
-                ForEach(configuration.fields) { field in
+                ForEach(configuration.editableFields) { field in
                     summaryRow(field.displayName, record.value(for: field) ?? "Not set")
                 }
             }
