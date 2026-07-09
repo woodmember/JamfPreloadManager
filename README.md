@@ -10,6 +10,10 @@ lock that configuration fleet-wide with a configuration profile.
 
 > Community project. Not affiliated with or endorsed by Jamf.
 
+> **Scope — Mac only:** This version manages **Mac (Computer)** inventory preload records
+> only. Mobile devices — **iPhone, iPad, Apple TV, Apple Watch, and Apple Vision Pro** — are
+> not supported yet. Records are created with a `Computer` device type.
+
 ---
 
 ## Contents
@@ -54,6 +58,8 @@ lock that configuration fleet-wide with a configuration profile.
 
 ## Requirements
 
+- **Mac (Computer) inventory preload only.** Mobile devices (iPhone, iPad, Apple TV, Apple
+  Watch, Apple Vision Pro) are not supported in this version.
 - macOS 14 (Sonoma) or later.
 - A Jamf Pro **API client** (client ID + secret) created under *Settings → API roles and
   clients* with privileges for Inventory Preload records:
