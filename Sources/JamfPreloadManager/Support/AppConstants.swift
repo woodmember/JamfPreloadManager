@@ -2,7 +2,7 @@ import Foundation
 
 enum AppConstants {
     static let appName = "Jamf Preload Manager"
-    static let appVersion = "0.7p"
+    static let appVersion = "0.8p"
     static let executableName = "JamfPreloadManager"
     static let bundleIdentifier = "io.github.woodmember.JamfPreloadManager"
     static let keychainService = bundleIdentifier

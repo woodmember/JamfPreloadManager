@@ -21,7 +21,7 @@ struct FieldSettingsView: View {
             Text("Fields")
                 .font(.largeTitle.weight(.semibold))
 
-            Text("These fields drive the Add, Modify, Find and Bulk screens as well as the CSV templates the app generates and reads. Serial Number is always included and required.")
+            Text("These fields drive the Add, Modify, Find and Bulk screens as well as the CSV templates the app generates and reads. Serial Number and Device Type (Computer / Mobile Device) are always included.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

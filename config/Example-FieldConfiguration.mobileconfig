@@ -24,29 +24,6 @@
 											<key>allowsCustomEntry</key>
 											<false/>
 											<key>defaultValue</key>
-											<string>Computer</string>
-											<key>displayName</key>
-											<string>Device Type</string>
-											<key>id</key>
-											<string>std:deviceType</string>
-											<key>inputType</key>
-											<string>list</string>
-											<key>isRequired</key>
-											<false/>
-											<key>key</key>
-											<string>deviceType</string>
-											<key>kind</key>
-											<string>standard</string>
-											<key>listOptions</key>
-											<array>
-												<string>Computer</string>
-												<string>Mobile Device</string>
-											</array>
-										</dict>
-										<dict>
-											<key>allowsCustomEntry</key>
-											<false/>
-											<key>defaultValue</key>
 											<string></string>
 											<key>displayName</key>
 											<string>Asset Tag</string>
