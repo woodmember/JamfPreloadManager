@@ -1,0 +1,18 @@
+# Build output
+.build/
+.build-cache/
+.swiftpm/
+DerivedData/
+
+# Local signing configuration (never publish your identities)
+script/signing.env
+
+# macOS cruft
+.DS_Store
+*.swp
+
+# Generated app bundle (the signed .pkg is committed; the loose .app is not)
+*.app
+
+# App-generated logs (should never be in the repo)
+*.log
