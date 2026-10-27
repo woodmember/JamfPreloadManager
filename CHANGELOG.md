@@ -3,6 +3,13 @@
 All notable changes to Jamf Preload Manager are documented here. Versions ending in `p` denote
 public builds.
 
+## 0.9p — 2026-10-27
+
+### Changed
+- Added a confirmation-based TLS pin reset in Settings for legitimate server key rotations.
+- TLS pin mismatch errors are now reported only when the saved public key actually differs;
+  other cancelled TLS requests retain their underlying network error.
+
 ## 0.8p — 2026-07-09
 
 ### Added
