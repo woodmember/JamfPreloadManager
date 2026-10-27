@@ -10,7 +10,7 @@ lock that configuration fleet-wide with a configuration profile.
 
 > Community project. Not affiliated with or endorsed by Jamf.
 
-> **⚠️ Beta software.** This is a **beta** release (v0.8p) — expect rough edges and please
+> **⚠️ Beta software.** This is a **beta** release (v0.9p) — expect rough edges and please
 > report issues.
 
 > **Device types:** Manages both **Computer** and **Mobile Device** inventory preload records —
@@ -329,7 +329,9 @@ Example lines:
   host. They are never written to source, CSVs, or plain files, and never embedded in a
   configuration profile.
 - **TLS public-key pinning** – the app pins the server's public key per host on first
-  connection and rejects mismatches on later requests.
+  connection and rejects mismatches on later requests. If the server legitimately rotates its
+  key, Settings provides a confirmation-based reset; macOS still validates the certificate and
+  hostname before the replacement key is saved.
 - **OAuth tokens** – obtained on demand via the client-credentials flow and never persisted.
 - **Least privilege** – bulk operations use the standard per-record endpoints, so the API role
   only needs the Inventory Preload privileges for the actions you perform.
@@ -371,7 +373,7 @@ notary profile; see [`docs/Notarization-HowTo.md`](docs/Notarization-HowTo.md).
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for release notes. Current release: **0.8p**.
+See [CHANGELOG.md](CHANGELOG.md) for release notes. Current release: **0.9p**.
 
 ---
 

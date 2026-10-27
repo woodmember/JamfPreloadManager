@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var feedback = "Saved settings are stored in your login keychain."
     @State private var connectionDetails: String?
     @State private var alertMessage: String?
+    @State private var showingPinResetConfirmation = false
     @State private var isAddingServer = false
     @State private var isSwitchingServer = false
     @State private var isSaving = false
@@ -124,6 +125,30 @@ struct SettingsView: View {
                     Text(feedback)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Section("TLS Pinning") {
+                    Text("The app remembers this server’s public key and rejects changes. If Jamf rotates its TLS key, reset the saved pin here after confirming the server URL. macOS will still validate the certificate and hostname before the app saves the replacement key.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Button("Reset Saved TLS Pin", systemImage: "arrow.clockwise.shield") {
+                        showingPinResetConfirmation = true
+                    }
+                    .disabled(isBusy)
+                    .confirmationDialog(
+                        "Reset the TLS pin for \(model.configuration.hostKey)?",
+                        isPresented: $showingPinResetConfirmation,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Reset Pin", role: .destructive) {
+                            JamfAPIClient.clearPinnedKey(for: model.configuration)
+                            feedback = "Saved TLS pin cleared for \(model.configuration.hostKey). The next successful connection will save a new key after macOS validates the server certificate."
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    } message: {
+                        Text("Use this after confirming a legitimate Jamf certificate rotation. The next connection will establish a new pin.")
+                    }
                 }
             }
             .formStyle(.grouped)

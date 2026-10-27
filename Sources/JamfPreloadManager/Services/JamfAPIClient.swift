@@ -5,15 +5,26 @@ import Security
 struct JamfAPIClient {
     let configuration: JamfConfiguration
     private let session: URLSession
+    private let pinningDelegate: TLSPinningDelegate?
     private let decoder = JSONDecoder()
 
     init(configuration: JamfConfiguration) {
-        self.init(configuration: configuration, session: Self.makePinnedSession(for: configuration))
+        let expectedHost = JamfConfiguration.host(from: configuration.normalizedServerURL) ?? configuration.hostKey
+        let delegate = TLSPinningDelegate(expectedHost: expectedHost)
+        self.configuration = configuration
+        self.pinningDelegate = delegate
+        self.session = Self.makePinnedSession(delegate: delegate)
     }
 
     init(configuration: JamfConfiguration, session: URLSession) {
         self.configuration = configuration
         self.session = session
+        self.pinningDelegate = nil
+    }
+
+    static func clearPinnedKey(for configuration: JamfConfiguration) {
+        let host = JamfConfiguration.host(from: configuration.normalizedServerURL) ?? configuration.hostKey
+        UserDefaults.standard.removeObject(forKey: "jamf.tlsPin.publicKeyHash.\(host)")
     }
 
     func fetchRecord(serial: String) async throws -> PreloadRecord? {
@@ -257,7 +268,9 @@ struct JamfAPIClient {
 
             return (data, httpResponse)
         } catch {
-            if let urlError = error as? URLError, urlError.code == .cancelled {
+            if let urlError = error as? URLError,
+               urlError.code == .cancelled,
+               pinningDelegate?.consumePinMismatch() == true {
                 throw JamfAppError.network("TLS certificate pinning failed for \(configuration.hostKey).")
             }
             if let error = error as? JamfAppError {
@@ -268,9 +281,7 @@ struct JamfAPIClient {
         }
     }
 
-    private static func makePinnedSession(for configuration: JamfConfiguration) -> URLSession {
-        let expectedHost = JamfConfiguration.host(from: configuration.normalizedServerURL) ?? configuration.hostKey
-        let delegate = TLSPinningDelegate(expectedHost: expectedHost)
+    private static func makePinnedSession(delegate: TLSPinningDelegate) -> URLSession {
         let sessionConfiguration = URLSessionConfiguration.ephemeral
         sessionConfiguration.waitsForConnectivity = true
         return URLSession(configuration: sessionConfiguration, delegate: delegate, delegateQueue: nil)
@@ -281,11 +292,20 @@ struct JamfAPIClient {
         private let pinsKey: String
         private let defaults: UserDefaults
         private let lock = NSLock()
+        private var pinMismatchDetected = false
 
         init(expectedHost: String, defaults: UserDefaults = .standard) {
             self.expectedHost = expectedHost
             self.pinsKey = "jamf.tlsPin.publicKeyHash.\(expectedHost)"
             self.defaults = defaults
+        }
+
+        func consumePinMismatch() -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
+            let detected = pinMismatchDetected
+            pinMismatchDetected = false
+            return detected
         }
 
         func urlSession(
@@ -330,6 +350,9 @@ struct JamfAPIClient {
                 if matches {
                     completionHandler(.useCredential, URLCredential(trust: trust))
                 } else {
+                    lock.lock()
+                    pinMismatchDetected = true
+                    lock.unlock()
                     completionHandler(.cancelAuthenticationChallenge, nil)
                 }
                 return

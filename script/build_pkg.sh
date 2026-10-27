@@ -31,7 +31,7 @@ APP_NAME="JamfPreloadManager"
 DISPLAY_NAME="Jamf Preload Manager"
 BUNDLE_NAME="${DISPLAY_NAME}.app"
 BUNDLE_ID="io.github.woodmember.JamfPreloadManager"
-APP_VERSION="0.8p"
+APP_VERSION="0.9p"
 APP_BUILD_VERSION="0.8"
 MIN_SYSTEM_VERSION="14.0"
 
